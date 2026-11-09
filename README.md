@@ -309,6 +309,7 @@ Além do que o enunciado pede, a plataforma tem recursos pensados para o dono de
 | Alertas no **Telegram** | Menu → Conectar | Manda os alertas CRÍTICOS para o celular, com limite anti-spam (1 por atacante a cada 2 min, máx. 10/min) |
 | Coletor para servidor real | Menu → Conectar · `scripts/coletor.py` | Acompanha os logs de um servidor Linux e envia ao SecuraPy em tempo real |
 | Simulador de ataque | `scripts/simular_ataque.py` | Gera tráfego normal e ataques em tempo real para demonstrar a tela Ao vivo |
+| Gerador de log | `py scripts/gerar_log.py [--sucesso] [--ataques sqli xss ...]` | Cria um arquivo `.log` realista (SSH, UFW, Apache) com tráfego normal + os ataques escolhidos, para testar o upload |
 
 **IA:** com `GEMINI_API_KEY` no `.env` (ou `OPENAI_API_KEY`), o assistente, o boletim, o chat e o diagnóstico usam o modelo de
 linguagem; sem chave, tudo funciona por regras (modo mock). As mesmas proteções do Módulo G valem para todos: dados
