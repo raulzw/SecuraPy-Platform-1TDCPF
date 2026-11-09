@@ -282,6 +282,9 @@ def create_app(repo_eventos=None, repo_usuarios=None, config=None, classificador
         resposta.headers["Content-Security-Policy"] = CSP
         resposta.headers["Referrer-Policy"] = "no-referrer"
         resposta.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
+        if resposta.mimetype == "application/json":
+            # Declara o UTF-8: sem isso o PowerShell 5.1 (Invoke-RestMethod) mostra "CRÃTICO"
+            resposta.headers["Content-Type"] = "application/json; charset=utf-8"
         if request.path.startswith("/api") or request.path in ("/login",):
             resposta.headers["Cache-Control"] = "no-store"
         usuario = getattr(g, "usuario", None) or {}

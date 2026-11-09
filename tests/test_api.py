@@ -129,3 +129,10 @@ def test_gestao_de_usuarios_admin(cliente, h_admin, h_leitor):
     assert cliente.post("/api/usuarios", headers=h_leitor, json=novo).status_code == 403
     assert cliente.post("/api/usuarios", headers=h_admin, json=novo).status_code == 201
     assert cliente.post("/api/usuarios", headers=h_admin, json=novo).status_code == 409  # B3 via API
+
+
+def test_json_declara_utf8(cliente):
+    """Clientes antigos (PowerShell 5.1) só acentuam certo se o charset vier no header."""
+    r = cliente.get("/api/ip/999.1.1.1")
+    assert r.headers["Content-Type"] == "application/json; charset=utf-8"
+    assert r.get_json() == {"erro": "IP inválido"}
