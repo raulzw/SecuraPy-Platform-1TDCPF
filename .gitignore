@@ -4,4 +4,3 @@ __pycache__/
 .pytest_cache/
 var/
 .venv/
-.env

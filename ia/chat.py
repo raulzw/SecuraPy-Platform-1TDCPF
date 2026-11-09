@@ -71,7 +71,7 @@ def _chamar_gemini(contexto, pergunta, historico, api_key):
     conversa = []
     for msg in historico[-4:]:
         papel = "model" if msg.get("de") == "ia" else "user"
-        conversa.append({"role": papel, "parts": [{"text": str(msg.get("texto", ""))[:MAX_PERGUNTA]}]})
+        conversa.append({"role": papel, "parts": [{"text": anonimizar(str(msg.get("texto", ""))[:MAX_PERGUNTA])}]})
     conversa.append({"role": "user", "parts": [{"text": f"<dados>\n{contexto}\n</dados>\n\nPergunta: {pergunta}"}]})
     corpo = {"systemInstruction": {"parts": [{"text": PROMPT_CHAT}]}, "contents": conversa,
              "generationConfig": {"temperature": 0.3, "maxOutputTokens": 1024}}

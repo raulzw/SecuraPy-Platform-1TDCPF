@@ -54,9 +54,15 @@ NOMES_LEIGOS = {
     "C005": "ataques combinados de vários tipos",
 }
 
-_cache = {"quando": 0.0, "resultado": None}
+_cache = {"quando": 0.0, "resultado": None, "versao": None}
 _trava = threading.Lock()
 CACHE_SEGUNDOS = 8
+
+
+def _versao_dos_dados(repo):
+    """Retrato barato do banco (3 contagens) para saber se o cache ainda vale."""
+    t = repo.totais()
+    return (t.get("eventos"), t.get("alertas"), t.get("ips_pontuados"))
 
 
 def montar_dados(repo):
@@ -140,8 +146,12 @@ def _chamar_gemini_texto(texto, api_key):
 
 def gerar_boletim(repo, chamar_llm=None):
     """Retorna {"texto": str, "origem": "llm"|"fallback"|"mock", "indicios": [...]}."""
+    # O cache só vale enquanto os dados não mudam: se chegou alerta novo (ou a base foi
+    # zerada) o boletim é refeito na hora — nunca mostra "tudo tranquilo" durante um ataque.
+    versao = _versao_dos_dados(repo)
     with _trava:
-        if _cache["resultado"] and time.time() - _cache["quando"] < CACHE_SEGUNDOS:
+        if (_cache["resultado"] and _cache["versao"] == versao
+                and time.time() - _cache["quando"] < CACHE_SEGUNDOS):
             return _cache["resultado"]
     dados = montar_dados(repo)
     reserva = boletim_por_regras(dados)
@@ -163,5 +173,5 @@ def gerar_boletim(repo, chamar_llm=None):
 
     resultado["indicios"] = dados.get("indicios", [])
     with _trava:
-        _cache.update(quando=time.time(), resultado=resultado)
+        _cache.update(quando=time.time(), resultado=resultado, versao=versao)
     return resultado

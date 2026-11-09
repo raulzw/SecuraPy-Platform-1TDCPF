@@ -80,7 +80,7 @@ securaPy_platform/
 ├── web/             rotas.py, templates/, static/
 ├── alertas/         servidor_alertas.py, cliente_alertas.py (1º sem)
 ├── scripts/         ingerir.py, verificar_containers.py, exportar_relatorio.py
-├── tests/           51 testes pytest (cenários A1–G4)
+├── tests/           68 testes pytest (cenários A1–G4 + funções extras)
 ├── logs/            logs oficiais da disciplina  ·  logs/exemplos_reais/ = logs do 1º sem (sshd/UFW/Apache)
 ├── config/          regras.json, blacklist.json
 ├── saida/           relatorio_exemplo.json (entregável 4)
@@ -134,7 +134,7 @@ docker compose down        # para tudo, mantém os dados
 docker compose down -v     # para tudo e APAGA os dados (use antes da apresentação para começar do zero)
 ```
 
-### Testes automáticos (51 testes)
+### Testes automáticos (68 testes)
 
 Rode os testes **dentro do Docker** — mesmo Python 3.13 da imagem e com acesso ao MySQL real do compose
 (os testes de MySQL B3/B4 rodam de verdade). Com a plataforma no ar:
@@ -143,7 +143,7 @@ Rode os testes **dentro do Docker** — mesmo Python 3.13 da imagem e com acesso
 docker compose run --rm -v "${PWD}:/app" api sh -c "pip install --user pytest mongomock && python -m pytest -q"
 ```
 
-Resultado esperado: **`51 passed`**. O contêiner é temporário (`--rm`) e não afeta a plataforma em execução.
+Resultado esperado: **`68 passed`**. O contêiner é temporário (`--rm`) e não afeta a plataforma em execução.
 
 > Rodar com o Python do Windows (`py -m pip install -r requirements-dev.txt` e `py -m pytest -v`) também funciona,
 > mas os 3 testes de MySQL são pulados (o banco do compose não é exposto fora da rede interna) e, em versões muito
@@ -272,7 +272,7 @@ interface. Qualquer erro de rede, timeout ou resposta fora do formato cai no fal
 
 ## Cenários de teste → onde são verificados
 
-51 testes — rode com o comando da seção [Testes automáticos](#testes-automáticos-51-testes). Também rodam no GitHub Actions com MySQL real (`.github/workflows/ci.yml`).
+68 testes — rode com o comando da seção [Testes automáticos](#testes-automáticos-68-testes). Também rodam no GitHub Actions com MySQL real (`.github/workflows/ci.yml`).
 
 | Cenário | Teste |
 |---|---|
@@ -285,6 +285,7 @@ interface. Qualquer erro de rede, timeout ou resposta fora do formato cai no fal
 | F1–F3 | `docker compose up` + `scripts/verificar_containers.py` |
 | G1–G4 | `tests/test_assistente.py` (LLM simulado por injeção de dependência) |
 | Tempo real (2 consoles) | `tests/test_alertas_tcp.py` |
+| Funções extras (upload, Ao vivo, chat, diagnóstico, Telegram) | `tests/test_extras.py` |
 
 ## Bônus implementados
 
@@ -292,8 +293,31 @@ interface. Qualquer erro de rede, timeout ou resposta fora do formato cai no fal
 |---|---|
 | Isolation Forest (+0,3) | `ml/anomalias.py`, coluna "Anomalia" no dashboard |
 | Correlação temporal (+0,2) | `core/detector.detectar_brute_force_janela` → alerta C004 |
-| Testes + CI (+0,3) | `tests/` (51 testes) + `.github/workflows/ci.yml` |
+| Testes + CI (+0,3) | `tests/` (68 testes) + `.github/workflows/ci.yml` |
 | JWT completo (+0,2) | `api/auth.py` |
+
+## Funções extras
+
+Além do que o enunciado pede, a plataforma tem recursos pensados para o dono de uma pequena empresa, que não é técnico:
+
+| Função | Onde fica | O que faz |
+|---|---|---|
+| Analisar um arquivo de log | Dashboard → "Analisar um arquivo de log seu" (nível 3+) | Envia um `.log`/`.txt` (até 2 MB) nos formatos SSH, UFW, Apache/Nginx ou o da disciplina; o tipo pode ser detectado sozinho |
+| Tela **Ao vivo** | Menu → Ao vivo | Painel que se atualiza a cada 2 s, com nota de saúde da segurança (0–100), últimos alertas e botão **Analisar com IA**, que gera um boletim em português simples |
+| **Pergunte à IA** | Menu → Pergunte à IA | Chat: "Fui atacado?", "Quem é o mais perigoso?", "O que eu faço agora?" — responde só com os dados reais do sistema |
+| **Diagnóstico** | Página do IP → "Diagnosticar com IA" | Diz qual ponto fraco o atacante tentou explorar e como corrigir (ex.: configuração do SSH) |
+| Alertas no **Telegram** | Menu → Conectar | Manda os alertas CRÍTICOS para o celular, com limite anti-spam (1 por atacante a cada 2 min, máx. 10/min) |
+| Coletor para servidor real | Menu → Conectar · `scripts/coletor.py` | Acompanha os logs de um servidor Linux e envia ao SecuraPy em tempo real |
+| Simulador de ataque | `scripts/simular_ataque.py` | Gera tráfego normal e ataques em tempo real para demonstrar a tela Ao vivo |
+
+**IA:** com `GEMINI_API_KEY` no `.env` (ou `OPENAI_API_KEY`), o assistente, o boletim, o chat e o diagnóstico usam o modelo de
+linguagem; sem chave, tudo funciona por regras (modo mock). As mesmas proteções do Módulo G valem para todos: dados
+sensíveis mascarados (inclusive o histórico do chat), conteúdo dos logs tratado como dado não confiável e fallback quando
+a IA falha. O boletim e o diagnóstico guardam a resposta por alguns segundos para poupar a cota da IA, mas refazem na hora
+quando chega um alerta novo.
+
+**Segurança das telas novas:** todo texto vindo dos logs é escrito com `textContent` (nunca `innerHTML`), todos os
+formulários `POST` exigem token CSRF, e apagar os dados da tela Ao vivo exige nível 5 (admin).
 
 ## Referência rápida da API
 

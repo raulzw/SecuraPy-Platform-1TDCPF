@@ -46,6 +46,7 @@ ORDEM = ["R006", "R003", "R004", "LOGIN", "PORTAS", "C003", "R005"]
 _cache = {}
 _trava = threading.Lock()
 CACHE_SEGUNDOS = 10
+MAX_CACHE = 200
 
 
 # ── evidências ───────────────────────────────────────────────────────────────
@@ -207,11 +208,13 @@ def validar_itens(conteudo):
 
 def diagnosticar(repo, ip, chamar_llm=None):
     """Retorna {"ip", "itens": [...], "origem": "llm"|"fallback"|"mock"|"sem_dados"}."""
+    alertas, eventos = repo.alertas_do_ip(ip), repo.eventos_do_ip(ip)
+    versao = (len(alertas), len(eventos))  # chegou algo novo deste IP → refaz o diagnóstico
     with _trava:
         guardado = _cache.get(ip)
-        if guardado and time.time() - guardado[0] < CACHE_SEGUNDOS:
+        if guardado and guardado[2] == versao and time.time() - guardado[0] < CACHE_SEGUNDOS:
             return guardado[1]
-    evidencias = coletar_evidencias(repo.alertas_do_ip(ip), repo.eventos_do_ip(ip), ip)
+    evidencias = coletar_evidencias(alertas, eventos, ip)
     if not evidencias:
         return {"ip": ip, "itens": [], "origem": "sem_dados"}
     manual = manual_de_correcoes(evidencias, ip)
@@ -230,5 +233,7 @@ def diagnosticar(repo, ip, chamar_llm=None):
         resultado = {"ip": ip, "itens": itens or manual, "origem": "llm" if itens else "fallback"}
 
     with _trava:
-        _cache[ip] = (time.time(), resultado)
+        if len(_cache) >= MAX_CACHE:  # não deixa o cache crescer sem limite (um IP por atacante)
+            _cache.pop(next(iter(_cache)))
+        _cache[ip] = (time.time(), resultado, versao)
     return resultado
