@@ -246,9 +246,8 @@ def aplicar_regras(eventos, regras):
 
 # ─── Testes isolados do módulo ───────────────────────────────────────────────
 if __name__ == "__main__":
-    import sys
-    sys.path.insert(0, ".")
-    from coletor import carregar_todos_os_logs
+    logging.basicConfig(level=logging.WARNING)
+    from core.coletor import carregar_todos_os_logs  # rode da raiz: python -m core.regras
 
     print("=== Teste do Módulo 2 — Motor de Regras ===\n")
 

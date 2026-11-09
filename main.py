@@ -32,8 +32,10 @@ def demo():
     for a in r["ameacas"]:
         s = scores.get(a["ip"], {})
         print(f"  [{a['severidade']:7s}] {a['ip']:16s} risco ML {s.get('score', '-'):>5} — {'; '.join(a['motivos'])}")
-    print("\nAssistente (LLM/fallback) no alerta mais grave:")
-    print(" ", classificar_evento(alertas[0]))
+    peso = {"CRITICA": 4, "ALTA": 3, "MEDIA": 2, "BAIXA": 1}
+    mais_grave = max(alertas, key=lambda a: (peso.get(a["severidade"], 0), a.get("score_risco") or 0))
+    print(f"\nAssistente (LLM/fallback) no alerta mais grave — {mais_grave['regra_nome']} ({mais_grave['ip']}):")
+    print(" ", classificar_evento(mais_grave))
 
 
 def main():

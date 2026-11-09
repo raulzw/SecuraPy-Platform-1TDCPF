@@ -301,9 +301,8 @@ def gerar_resumo_ameacas(brute_force, port_scan, ips_blacklist):
 
 # ─── Testes isolados do módulo ───────────────────────────────────────────────
 if __name__ == "__main__":
-    import sys
-    sys.path.insert(0, ".")
-    from coletor import carregar_todos_os_logs
+    logging.basicConfig(level=logging.WARNING)
+    from core.coletor import carregar_todos_os_logs  # rode da raiz: python -m core.detector
 
     BLACKLIST = set(BLACKLIST_PADRAO)
 
