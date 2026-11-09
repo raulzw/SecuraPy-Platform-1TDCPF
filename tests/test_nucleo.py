@@ -77,3 +77,19 @@ def test_bonus_brute_force_em_janela(eventos):
     assert "45.33.32.156" not in janela  # só 3 falhas
     curta = detectar_brute_force_janela(eventos, janela_segundos=5, threshold=3)
     assert "91.240.118.172" not in curta  # falhas espaçadas (low-and-slow) não disparam janela curta
+
+
+def test_regras_detectam_ataque_com_url_codificada():
+    """Ferramentas como o sqlmap mandam a URL codificada (%20, %27); a regra precisa ver através disso."""
+    from core.coletor import parsear_linha_web
+    from core.regras import aplicar_regras, carregar_regras
+    regras = carregar_regras(f"{RAIZ}/config/regras.json")
+    casos = {
+        "R006": '203.0.113.45 - - [08/Nov/2026:14:10:00 -0300] "GET /p?id=1\'%20OR%20\'1\'=\'1 HTTP/1.1" 500 1 "-" "sqlmap"',
+        "R003": '203.0.113.45 - - [08/Nov/2026:14:10:01 -0300] "GET /d?f=%252e%252e%252fetc%252fpasswd HTTP/1.1" 400 1 "-" "curl"',
+        "R004": '203.0.113.45 - - [08/Nov/2026:14:10:02 -0300] "GET /b?q=%3Cscript%3Ealert(1)%3C/script%3E HTTP/1.1" 200 1 "-" "x"',
+    }
+    for regra_id, linha in casos.items():
+        evento = parsear_linha_web(linha.replace("\\'", "'"))
+        assert evento, linha
+        assert regra_id in {a["regra_id"] for a in aplicar_regras([evento], regras)}, regra_id

@@ -80,7 +80,7 @@ securaPy_platform/
 ├── web/             rotas.py, templates/, static/
 ├── alertas/         servidor_alertas.py, cliente_alertas.py (1º sem)
 ├── scripts/         ingerir.py, verificar_containers.py, exportar_relatorio.py
-├── tests/           68 testes pytest (cenários A1–G4 + funções extras)
+├── tests/           69 testes pytest (cenários A1–G4 + funções extras)
 ├── logs/            logs oficiais da disciplina  ·  logs/exemplos_reais/ = logs do 1º sem (sshd/UFW/Apache)
 ├── config/          regras.json, blacklist.json
 ├── saida/           relatorio_exemplo.json (entregável 4)
@@ -134,7 +134,7 @@ docker compose down        # para tudo, mantém os dados
 docker compose down -v     # para tudo e APAGA os dados (use antes da apresentação para começar do zero)
 ```
 
-### Testes automáticos (68 testes)
+### Testes automáticos (69 testes)
 
 Rode os testes **dentro do Docker** — mesmo Python 3.13 da imagem e com acesso ao MySQL real do compose
 (os testes de MySQL B3/B4 rodam de verdade). Com a plataforma no ar:
@@ -143,7 +143,7 @@ Rode os testes **dentro do Docker** — mesmo Python 3.13 da imagem e com acesso
 docker compose run --rm -v "${PWD}:/app" api sh -c "pip install --user pytest mongomock && python -m pytest -q"
 ```
 
-Resultado esperado: **`68 passed`**. O contêiner é temporário (`--rm`) e não afeta a plataforma em execução.
+Resultado esperado: **`69 passed`**. O contêiner é temporário (`--rm`) e não afeta a plataforma em execução.
 
 > Rodar com o Python do Windows (`py -m pip install -r requirements-dev.txt` e `py -m pytest -v`) também funciona,
 > mas os 3 testes de MySQL são pulados (o banco do compose não é exposto fora da rede interna) e, em versões muito
@@ -272,7 +272,7 @@ interface. Qualquer erro de rede, timeout ou resposta fora do formato cai no fal
 
 ## Cenários de teste → onde são verificados
 
-68 testes — rode com o comando da seção [Testes automáticos](#testes-automáticos-68-testes). Também rodam no GitHub Actions com MySQL real (`.github/workflows/ci.yml`).
+69 testes — rode com o comando da seção [Testes automáticos](#testes-automáticos-69-testes). Também rodam no GitHub Actions com MySQL real (`.github/workflows/ci.yml`).
 
 | Cenário | Teste |
 |---|---|
@@ -293,7 +293,7 @@ interface. Qualquer erro de rede, timeout ou resposta fora do formato cai no fal
 |---|---|
 | Isolation Forest (+0,3) | `ml/anomalias.py`, coluna "Anomalia" no dashboard |
 | Correlação temporal (+0,2) | `core/detector.detectar_brute_force_janela` → alerta C004 |
-| Testes + CI (+0,3) | `tests/` (68 testes) + `.github/workflows/ci.yml` |
+| Testes + CI (+0,3) | `tests/` (69 testes) + `.github/workflows/ci.yml` |
 | JWT completo (+0,2) | `api/auth.py` |
 
 ## Funções extras

@@ -12,6 +12,7 @@ a eventos, gerando alertas quando as condições são violadas.
 """
 
 import logging
+from urllib.parse import unquote_plus
 
 log = logging.getLogger("securapy.core.regras")
 
@@ -197,10 +198,24 @@ def _url_do_evento(evento):
     return ""
 
 
+def _decodificar_url(texto, rodadas=3):
+    """
+    Desfaz o URL-encoding (%20, %27, + ...) — inclusive duplo (%2527), truque comum
+    para esconder o ataque. Sem isso, "1'%20OR%20'1'='1" escapava da regra de SQLi.
+    """
+    for _ in range(rodadas):
+        decodificado = unquote_plus(texto)
+        if decodificado == texto:
+            break
+        texto = decodificado
+    return texto
+
+
 def _contem_padrao(texto, padroes):
-    """True se algum padrão aparece no texto (case-insensitive)."""
-    texto = (texto or "").lower()
-    return any(str(p).lower() in texto for p in padroes)
+    """True se algum padrão aparece no texto, cru ou decodificado (case-insensitive)."""
+    cru = (texto or "").lower()
+    decodificado = _decodificar_url(cru)
+    return any(str(p).lower() in cru or str(p).lower() in decodificado for p in padroes)
 
 
 def aplicar_regras(eventos, regras):
